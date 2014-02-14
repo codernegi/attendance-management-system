@@ -1,5 +1,6 @@
 <?php
-
+$_SESSION['roll']="";
+$_SESSION['nm']="";
 function initialize_holid($holid, $from, $till, $con) 
 {
     $date = $from;
@@ -697,6 +698,406 @@ function cancel_check($con, $d, $c_id, $time_start, $time_end) {
     {
         return false;
     }
+}
+
+
+/* This function is the modification of the function "report" it can be done by modifying that function also but I don't want to change the original function. only I need the $name variable*/	
+
+function report_export($con, $rollno, $name, $c_id, $from, $till, $type ,$schedule , $holid , $chart) {
+		$_SESSION['roll']=$rollno;
+		$_SESSION['nm']=$name;
+        /*
+        //intialize holiday array
+        //$holid[date] = 1 if holiday or else 0
+        //$holid = array();
+        //$holid = initialize_holid($holid, $from, $till, $con);
+        
+        //setting up the chart table
+        //actual report
+        $chart = array();    
+        $chart1= array();
+        $chart2= array();
+        
+        //chart_initialize
+        $chart = initialize_chart($chart, $chart1, $schedule, $from, $till, $con , $c_id);
+        */
+    
+        //timestamp of student in then given interval (independent of all courses)
+        $query2 =   "
+                    SELECT timestamp 
+                    FROM attendance 
+                    WHERE userid='$rollno'	AND DATE(timestamp) BETWEEN '$from' AND '$till' 
+						";
+        $result2 = mysqli_query($con, $query2) or die("Error: " . mysqli_error($con));
+
+        //array storing student's timestamp
+        $ts = array();
+
+        while ($row2 = mysqli_fetch_array($result2)) {
+            array_push($ts, $row2['timestamp']);
+        }
+
+        //length of array storing student's timestamp
+        $ts_length = count($ts);
+        
+        //counter
+        $i = 0;
+
+        // Set timezone
+        date_default_timezone_set('UTC');
+
+        // Start date
+        $date = $from;
+
+        // End date
+        $end_date = $till;
+
+
+        //finding total expected classes
+        while (strtotime($date) <= strtotime($end_date)) {
+            //outer loop goes from '$from' to '$till' checking for classes and timestamp in $ts
+            //in ech outer loop inner loop goes from '$ts[0]' to '$ts[$ts_length - 1]
+            //if students entry time in '$ts' is between scheduled classes then assign present 
+
+            $dt = new DateTime($date);
+            $day = $dt->format('l');    //day		
+            $d = $dt->format('Y-m-d');  //date
+               
+            //counter
+            $i = 0;  
+                          
+            //will enter the loop only if student is present atleast once           
+            while ( $i < $ts_length ) 
+            {
+                
+                $user_timestamp = date_create($ts[$i]);
+                $user_date      = date_format($user_timestamp, 'Y-m-d');
+                $user_time      = date_format($user_timestamp, 'H:i:s');
+
+                //if only one class on this date
+                //condition = count + date + start_time + finishing_time
+                
+                if ($schedule[$day][0] == 1 and $d == $user_date and $user_time >= $schedule[$day][1] and $user_time <= $schedule[$day][2]) 
+                {
+                    //in time range of class
+                    
+                    if (cancel_check($con, $d, $c_id, $schedule[$day][1], $schedule[$day][2])) 
+                    {
+                        //if not cancelled then it's scheduled
+                        $chart[$d][5] = "Scheduled";
+                        $chart[$d][6] = $user_time;
+                        $chart[$d][7] = "Present";
+                    } 
+                    else 
+                    {
+                        //if cancelled
+                        $chart[$d][5] = "Cancel";
+                        $chart[$d][6] = "";
+                        $chart[$d][7] = "";
+                    }
+                }
+                
+                //if user entry time is beyond class scheduled
+                else if ($schedule[$day][0] == 1 and $d == $user_date and ($user_time <= $schedule[$day][1] || $user_time >= $schedule[$day][2])) 
+                {
+                    
+                }
+
+                //if two classes on this date
+                if ($schedule[$day][0] == 2) 
+                {
+                    //if first isn't cancelled
+                    if (cancel_check($con, $d, $c_id, $schedule[$day][1], $schedule[$day][2])) 
+                    {
+                        if (($d == $user_date) and ($user_time >= $schedule[$day][1]) and ($user_time <= $schedule[$day][2])) 
+                        {
+                            //if student entry time is in scheduled class timing
+                            $chart[$d][5] = "Scheduled";
+                            $chart[$d][6] = $user_time;
+                            $chart[$d][7] = "Present";
+                        }
+                        
+                        //if user entry time is beyond the scheduled class time
+                        else if (($d == $user_date) and ($user_time <= $schedule[$day][1] || $user_time >= $schedule[$day][2])) 
+                        {                           
+                            
+                        }
+                    }
+                    
+                    //if first class of the day is cancelled 
+                    else 
+                    {                        
+                        $chart[$d][5] = "Cancelled";
+                        $chart[$d][6] = " ";
+                        $chart[$d][7] = " ";
+                    }
+
+                    //if second class of the day isn't cancelled   
+                    if (cancel_check($con, $d, $c_id, $schedule[$day][3], $schedule[$day][4])) 
+                    {
+                        //if user entry time is between scheduled class
+                        if ($d == $user_date and $user_time >= $schedule[$day][3] and $user_time <= $schedule[$day][4]) {
+                            $chart[$d][9][5] = "Scheduled";
+                            $chart[$d][9][6] = $user_time;
+                            $chart[$d][9][7] = "Present";
+                        } 
+                        //if entry time beyond class schedule
+                        else if ($d == $user_date and ($user_time <= $schedule[$day][3] || $user_time >= $schedule[$day][4])) 
+                        {
+                           
+                        }
+                    } 
+                    //second class cancelled
+                    else 
+                    {
+                        $chart[$d][9][5] = "Cancelled";
+                        $chart[$d][9][6] = " ";
+                        $chart[$d][9][7] = " ";
+                    }
+                }
+                
+                //checking for extra classes
+                $query = "
+                            SELECT time1_start , time1_end
+                            FROM alter_class 
+                            WHERE course_id='$c_id' AND date='$d' AND type='E'
+			";
+                
+                $result = mysqli_query($con, $query) or die("Error: " . mysqli_error($con));
+
+                while ($row = mysqli_fetch_array($result)) 
+                {
+                
+                $chart[$d][8] = 1;
+
+                $chart2[$d][0] = $d;
+                $chart2[$d][1] = $day;
+                $chart2[$d][2] = $row['time1_start'];
+                $chart2[$d][3] = $row['time1_end'];
+                $chart2[$d][4] = "Extra";
+                $chart2[$d][5] = "";
+                $chart2[$d][6] = "Absent";
+
+                 
+                if ($user_time >= $row['time1_start'] and $user_time <= $row['time1_end']) 
+                {
+                    
+                    $chart2[$d][5] = $user_time;
+                    $chart2[$d][6] = "Present";
+                } 
+                
+                $chart[$d][10] = array($chart2[$d][0], $chart2[$d][1], $chart2[$d][2], $chart2[$d][3], $chart2[$d][4], $chart2[$d][5], $chart2[$d][6]);
+                
+                
+            }
+                //next index of $ts[]
+                $i = $i + 1;
+            }//checking for extra finished
+            
+            //for those students whose $ts_length=0
+            if ($ts_length == 0)
+            {
+                //checking for extra classes
+                $query1 = "
+                            SELECT time1_start , time1_end
+                            FROM alter_class 
+                            WHERE course_id='$c_id' AND date='$d' AND type='E'
+			";
+                
+                $result1 = mysqli_query($con, $query1) or die("Error: " . mysqli_error($con));
+                
+                while ($row = mysqli_fetch_array($result1))
+                {
+                $chart[$d][8] = 1;
+
+                $chart2[$d][0] = $d;
+                $chart2[$d][1] = $day;
+                $chart2[$d][2] = $row['time1_start'];
+                $chart2[$d][3] = $row['time1_end'];
+                $chart2[$d][4] = "Extra";
+                $chart2[$d][5] = "";
+                $chart2[$d][6] = "Absent";
+
+
+                $chart[$d][10] = array($chart2[$d][0], $chart2[$d][1], $chart2[$d][2], $chart2[$d][3], $chart2[$d][4], $chart2[$d][5], $chart2[$d][6]);
+                }
+            }
+            
+            $date = date("Y-m-d", strtotime("+1 day", strtotime($date)));
+        }//while loop ends
+        
+        export_chart($chart, $from, $till, $type, $holid);
+    }//present day ends
+/* This function is the modification of the function "print_chart" it can be done by modifying that function also but I don't want to change the original function*/	
+function export_chart($chart, $from, $till, $type, $holid) 
+{   
+    $present_days = 0;
+    $absent_days = 0;
+
+    $date = $from;
+    $end_date = $till;
+    $dt = new DateTime($date);
+    $d = $dt->format('Y-m-d'); //date		
+
+   // echo "<TABLE borderColor=#000000 cellSpacing=0 cellPadding=6 border=2>\n";
+    //echo "<th>DATE</th><th>DAY</th><th>START TIME</th><th>END TIME</th><th>TYPE</th><th>ENTRY</th><th>STATUS</th>";
+
+    while (strtotime($date) <= strtotime($end_date)) 
+    {
+        $dt = new DateTime($date);
+        $d = $dt->format('Y-m-d');
+        $day = $dt->format('l');
+
+        if ($holid[$d] == 1) 
+        {
+            if ($type == "Complete" )
+            {
+				$_SESSION['csv'][$_SESSION['cnt']]=array($_SESSION['nm'],$_SESSION['roll'],$d,$day," "," ","HOLIDAY"," "," "," "," ");
+				$_SESSION['cnt']=$_SESSION['cnt']+1;
+                /*echo "<tr>";
+                echo
+                "<td>" . $d . " </td>" .
+                "<td>" . $day . " </td>" .
+                "<td>" . "" . " </td>" .
+                "<td>" . "" . " </td>" .
+                "<td>" . "Holiday" . " </td>" .
+                "<td>" . "" . " </td>" .
+                "<td>" . "" . " </td>";
+                echo "</tr>";*/
+            }
+			
+            
+            else
+            {
+                
+            }
+        } 
+        else if ($chart[$d][7] == $type || $type == "Complete") 
+        {
+			$_SESSION['csv'][$_SESSION['cnt']]=array($_SESSION['nm'],$_SESSION['roll'],$chart[$d][1],$chart[$d][2],$chart[$d][3],$chart[$d][4],$chart[$d][5],$chart[$d][6],$chart[$d][7]," "," ");
+			$_SESSION['cnt']=$_SESSION['cnt']+1;
+            
+            /*echo "<tr>";
+            echo
+            "<td>" . $chart[$d][1] . " </td>" .
+            "<td>" . $chart[$d][2] . " </td>" .
+            "<td>" . $chart[$d][3] . " </td>" .
+            "<td>" . $chart[$d][4] . " </td>" .
+            "<td>" . $chart[$d][5] . " </td>" .
+            "<td>" . $chart[$d][6] . " </td>" .
+            "<td>" . $chart[$d][7] . " </td>";
+            echo "</tr>";*/
+
+            if ($chart[$d][7] == "Absent")
+                $absent_days++;
+            if ($chart[$d][7] == "Present")
+                $present_days++;
+        }
+
+        if ($chart[$d][0] == 2) 
+        {
+            //if two classes in a day
+            //first has been printed above
+            
+            if ($holid[$d] == 0 )
+            {
+                if ($chart[$d][9][7] == $type || $type == "Complete") 
+                {
+                
+					$_SESSION['csv'][$_SESSION['cnt']]=array($_SESSION['nm'],$_SESSION['roll'],$chart[$d][9][1],$chart[$d][9][2],$chart[$d][9][3],$chart[$d][9][4],$chart[$d][9][5],$chart[$d][9][6],$chart[$d][9][7]," "," ");
+					$_SESSION['cnt']=$_SESSION['cnt']+1;
+                   /* echo "<tr>";
+                    echo
+                    "<td>" . $chart[$d][9][1] . "</td> " .
+                    "<td>" . $chart[$d][9][2] . "</td> " .
+                    "<td>" . $chart[$d][9][3] . "</td> " .
+                    "<td>" . $chart[$d][9][4] . "</td> " .
+                    "<td>" . $chart[$d][9][5] . "</td> " .
+                    "<td>" . $chart[$d][9][6] . "</td> " .
+                    "<td>" . $chart[$d][9][7] . "</td> ";
+                    echo "</tr>";
+					*/
+					
+                    if ($chart[$d][9][7] == "Absent")
+                         $absent_days++;
+                    if ($chart[$d][9][7] == "Present")
+                        $present_days++;
+                }
+            }
+            
+            else if ($holid[$d]==1 )
+            {
+                if ($type=="Complete")
+                {   
+					$_SESSION['csv'][$_SESSION['cnt']]=array($_SESSION['nm'],$_SESSION['roll'],$d,$day," "," ","HOLIDAY"," "," "," "," ");
+					$_SESSION['cnt']=$_SESSION['cnt']+1;
+						/*echo "<tr>";
+						echo
+                        "<td>" . $d . " </td>" .
+                        "<td>" . $day . " </td>" .
+                        "<td>" . "" . " </td>" .
+                        "<td>" . "" . " </td>" .
+                        "<td>" . "Holiday" . " </td>" .
+                        "<td>" . "" . " </td>" .
+                        "<td>" . "" . " </td>";
+                        echo "</tr>";*/
+                }
+                        
+            }
+          
+        }
+        
+
+        //if any extra classes arranged
+        //no holiday check
+        //because extra class can be on any holiday also
+        if ($chart[$d][8] == 1) 
+        {
+            if ($chart[$d][10][6] == $type || $type == "Complete") 
+            {
+				$_SESSION['csv'][$_SESSION['cnt']]=array($_SESSION['nm'],$_SESSION['roll'],$chart[$d][10][0],$chart[$d][10][1],$chart[$d][10][2],$chart[$d][10][3],$chart[$d][10][4],$chart[$d][10][5],$chart[$d][10][6]," "," ");
+				$_SESSION['cnt']=$_SESSION['cnt']+1;
+                /*echo "<tr>";
+                echo
+                "<td>" . $chart[$d][10][0] . "</td> " .
+                "<td>" . $chart[$d][10][1] . "</td> " .
+                "<td>" . $chart[$d][10][2] . "</td> " .
+                "<td>" . $chart[$d][10][3] . "</td> " .
+                "<td>" . $chart[$d][10][4] . "</td> " .
+                "<td>" . $chart[$d][10][5] . "</td> " .
+                "<td>" . $chart[$d][10][6] . "</td> ";
+                echo "</tr>";*/
+
+                if ($chart[$d][10][6] == "Absent")
+                    $absent_days++;
+                if ($chart[$d][10][6] == "Present")
+                    $present_days++;
+            }
+        }
+
+        //date increment
+        $date = date("Y-m-d", strtotime("+1 day", strtotime($date)));
+    }
+    
+    /*echo "</TABLE></HTML>";
+    echo "<br>";
+    echo "<br>";*/
+    
+    if ($type == "Present" || $type == "Complete")
+    {
+		$_SESSION['csv'][$_SESSION['cnt']]=array($_SESSION['nm'],$_SESSION['roll']," "," "," "," "," "," "," ",$present_days," ");
+		$_SESSION['cnt']=$_SESSION['cnt']+1;
+		/*echo "# Present classes =   " . $present_days;
+    echo "<br>";
+    echo "<br>";*/
+	}
+    if ($type == "Absent" || $type == "Complete")
+	{
+		$_SESSION['csv'][$_SESSION['cnt']]=array($_SESSION['nm'],$_SESSION['roll']," "," "," "," "," "," "," "," ",$absent_days);
+		$_SESSION['cnt']=$_SESSION['cnt']+1;
+        /*echo "# Absent classes  =   " . $absent_days;
+    echo "<br><br>  -   -   -   -   -   -   -   -   -   -<br><br>";*/
+	}
 }
 
 ?>

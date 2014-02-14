@@ -1,0 +1,51 @@
+NAME,ROLL-NO,DATE,DAY,"START TIME","END TIME",TYPE,ENTRY,STATUS,TOTAL_PRESENT,TOTAL_ABSENT
+B,ca1,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+B,ca1,2014-01-27,Monday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+B,ca1,2014-01-27,Monday,13:00:00,17:00:00,Scheduled," ",Absent," "," "
+B,ca1," "," "," "," "," "," "," "," ",3
+C,ca10,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+C,ca10,2014-01-31,Friday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+C,ca10,2014-01-31,Friday,13:00:00,17:00:00,Scheduled," ",Absent," "," "
+C,ca10," "," "," "," "," "," "," "," ",3
+D,ca11,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+D,ca11," "," "," "," "," "," "," "," ",1
+E,ca12,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+E,ca12," "," "," "," "," "," "," "," ",1
+F,ca13,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+F,ca13," "," "," "," "," "," "," "," ",1
+G,ca14,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+G,ca14," "," "," "," "," "," "," "," ",1
+H,ca16,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+H,ca16," "," "," "," "," "," "," "," ",1
+I,ca17,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+I,ca17," "," "," "," "," "," "," "," ",1
+J,ca18,2014-01-23,Thursday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+J,ca18,2014-01-24,Friday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+J,ca18,2014-01-24,Friday,13:00:00,17:00:00,Scheduled," ",Absent," "," "
+J,ca18,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+J,ca18,2014-01-31,Friday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+J,ca18,2014-01-31,Friday,13:00:00,17:00:00,Scheduled," ",Absent," "," "
+J,ca18," "," "," "," "," "," "," "," ",6
+K,ca2,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+K,ca2," "," "," "," "," "," "," "," ",1
+M,ca3,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+M,ca3," "," "," "," "," "," "," "," ",1
+N,ca4,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+N,ca4,2014-01-30,Thursday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+N,ca4," "," "," "," "," "," "," "," ",2
+O,ca5,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+O,ca5,2014-01-27,Monday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+O,ca5," "," "," "," "," "," "," "," ",2
+P,ca6,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+P,ca6,2014-01-30,Thursday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+P,ca6," "," "," "," "," "," "," "," ",2
+Q,ca7,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+Q,ca7,2014-01-27,Monday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+Q,ca7,2014-01-27,Monday,13:00:00,17:00:00,Scheduled," ",Absent," "," "
+Q,ca7," "," "," "," "," "," "," "," ",3
+R,ca8,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+R,ca8,2014-01-28,Tuesday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+R,ca8,2014-01-30,Thursday,08:30:00,12:30:00,Scheduled," ",Absent," "," "
+R,ca8," "," "," "," "," "," "," "," ",3
+S,ca9,2014-01-26,Sunday,11:00:00,12:00:00,Extra,,Absent," "," "
+S,ca9," "," "," "," "," "," "," "," ",1

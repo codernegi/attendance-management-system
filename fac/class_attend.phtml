@@ -1,6 +1,8 @@
 <div class="center">
 <?php
-
+$_SESSION['csv']=array(array());
+$_SESSION['csv'][0]=array("NAME","ROLL-NO","DATE","DAY","START TIME","END TIME","TYPE","ENTRY","STATUS","TOTAL_PRESENT","TOTAL_ABSENT");
+$_SESSION['cnt']=1;
 require_once( 'dbconnect.php');
 $a = $_GET['id'];
 $result = mysql_query("select * from course_details where course_id='$a'")
@@ -54,6 +56,8 @@ if ($row = mysql_fetch_array($result)) {
         <br>
             <input type="submit" value="Show" name="save" class="Submit"/>
         </div>
+		
+           
     </fieldset>
 </form>
 </div>
@@ -62,6 +66,23 @@ if ($row = mysql_fetch_array($result)) {
 <br>
 <br>
 <?php
+	/*$list = array (
+    array('aaa', 'bbb', 'ccc', 'dddd'),
+    array('123', '456', '789'),
+    array('"aaa"', '"bbb"')
+	);*/
+/*if(isset($_POST['export']))
+{
+	echo "hello";
+	$fp = fopen('file.csv', 'w');
+	foreach ($_SESSION['csv'] as $fields)
+	{
+		fputcsv($fp, $fields);
+	}
+	fclose($fp);
+}
+	*/
+
 if (array_key_exists('save', $_POST)) 
 {
     include 'functions.php';
@@ -199,6 +220,8 @@ if (array_key_exists('save', $_POST))
             while ($row = mysqli_fetch_array($result)) {
                 array_push($stu_reg_list, $row['name']);
                 array_push($stu_roll_list, $row['id_no']);
+				
+				
             }
 
             //calculating # attended classes for all students
@@ -224,7 +247,7 @@ if (array_key_exists('save', $_POST))
             $i = 0;
             $stu_len = count($stu_reg_list);
             while ($i < $stu_len) {
-
+		
                 //printing name 
                 echo "<b><br>For user " . $stu_reg_list[$i] . "</b>";
                 
@@ -232,16 +255,25 @@ if (array_key_exists('save', $_POST))
                 echo "	(" . $stu_roll_list[$i] . ")<br><br>";
 
                 $rollno = $stu_roll_list[$i];
-                                
+                $name = $stu_reg_list[$i];               
                 //classes when user is present and it's count
                 report($con,$rollno,$c_id,$from,$till,$type , $schedule , $holid , $chart);
-
+				report_export($con,$rollno,$name,$c_id,$from,$till,$type , $schedule , $holid , $chart);
                 $i = $i + 1;
             }//while loop end
+			
         }}//class view end
     }//	date boundry condition end 
+	
     
 }//if array exists part end
-
+//echo "hello";
+/* this code generates the .csv file the csv file will be created when the show button will hit */
+	$fp = fopen('file.csv', 'w');
+	foreach ($_SESSION['csv'] as $fields)
+	{
+		fputcsv($fp, $fields);
+	}
+	fclose($fp);
 ?>
 </div>
